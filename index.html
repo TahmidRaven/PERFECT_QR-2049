@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PERFECT_QR // 2049</title>
+    <script src="https://cdn.jsdelivr.net/gh/ushelp/EasyQRCodeJS@master/dist/easy.qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Fira+Code:wght@400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --br-magenta: #932F8C;
+            --br-deep-purple: #441d4b;
+            --br-noir-blue: #422F90;
+            --deep-blue: #050510;
+            --screen-white: #e0e0ff;
+        }
+
+        /* CRT ANIMATIONS */
+        @keyframes flicker {
+            0% { opacity: 0.99; }
+            5% { opacity: 0.98; }
+            10% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--deep-blue);
+            color: var(--br-magenta);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .crt-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 1;
+            animation: flicker 0.15s infinite;
+        }
+
+        .scanline-bar {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent, rgba(147, 47, 140, 0.05), transparent);
+            background-size: 100% 20%;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            z-index: 2;
+            animation: scanline 12s linear infinite;
+        }
+
+        .glass-container {
+            width: 100%;
+            max-width: 480px;
+            background: rgba(5, 5, 15, 1);
+            border: 1px solid var(--br-noir-blue);
+            padding: 1.5rem 1.5rem;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(0,0,0,1);
+        }
+
+        h1 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin: 0 0 15px 0;
+            border-bottom: 1px solid var(--br-magenta);
+            padding-bottom: 5px;
+            color: var(--screen-white);
+        }
+
+        input[type="text"], select.full-width {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--br-deep-purple);
+            border-bottom: 2px solid var(--br-noir-blue);
+            color: var(--screen-white);
+            padding: 8px;
+            font-family: 'Fira Code', monospace;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+            font-size: 0.8rem;
+            outline: none;
+        }
+
+        .option-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 5px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-family: 'Fira Code', monospace;
+            font-size: 7px;
+            cursor: pointer;
+            color: var(--screen-white);
+        }
+
+        .shape-select {
+            background: #000;
+            color: var(--br-magenta);
+            border: 1px solid var(--br-deep-purple);
+            font-family: 'Fira Code', monospace;
+            font-size: 7.5px;
+            padding: 1px;
+            cursor: pointer;
+        }
+
+        .bg-btn {
+            background: var(--br-deep-purple);
+            border: 1px solid var(--br-magenta);
+            color: var(--screen-white);
+            font-family: 'Fira Code', monospace;
+            font-size: 7.5px;
+            padding: 2px 4px;
+            cursor: pointer;
+        }
+
+        .color-strip {
+            display: flex;
+            gap: 6px;
+            border-left: 1px solid var(--br-deep-purple);
+            padding-left: 8px;
+        }
+
+        .color-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+            font-family: 'Fira Code', monospace;
+            font-size: 6.5px;
+            color: var(--screen-white);
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: 1px solid var(--br-magenta);
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+            padding: 0;
+            background: none;
+        }
+
+        #qrcode-wrapper {
+            background: #ffffff !important;
+            padding: 12px;
+            margin: 5px auto 15px auto;
+            display: inline-block;
+            border: 2px solid #000;
+            position: relative;
+            z-index: 20;
+            isolation: isolate;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button.main-btn {
+            background: transparent;
+            border: 1px solid var(--br-magenta);
+            color: var(--br-magenta);
+            padding: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 9px;
+            font-family: 'Fira Code', monospace;
+            transition: 0.2s;
+        }
+
+        button.main-btn:hover {
+            background: var(--br-magenta);
+            color: #fff;
+        }
+
+        .footer-credit {
+            font-size: 7px;
+            margin-top: 15px;
+            text-align: center;
+            font-family: 'Fira Code', monospace;
+            opacity: 90%;
+            color: lavenderblush;
+            letter-spacing: 1px;
+        }
+
+        .footer-credit a {
+            color: var(--br-magenta);
+            text-decoration: none;
+            border-bottom: 1px dotted var(--br-magenta);
+        }
+
+        #status {
+            font-size: 8px;
+            margin-top: 10px;
+            text-align: right;
+            font-family: 'Fira Code', monospace;
+            opacity: 0.7;
+            color: violet;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="crt-overlay"></div>
+    <div class="scanline-bar"></div>
+
+    <div class="glass-container">
+        <h1>PERFECT_QR // 2049</h1>
+        
+        <div class="option-row" style="margin-bottom: 15px;">
+            <select id="protocolSelect" class="full-width" onchange="updateInputFields()" style="margin-bottom:0; border-color: var(--br-magenta); color: var(--br-magenta);">
+                <option value="URL">PROTO: NEURAL_LINK (URL)</option>
+                <option value="WIFI">PROTO: WIFI_ACCESS</option>
+                <option value="VCARD">PROTO: IDENTITY_CARD</option>
+                <option value="TEXT">PROTO: ENCRYPTED_TEXT</option>
+            </select>
+        </div>
+
+        <div id="inputContainer">
+            <input type="text" id="urlInput" placeholder="> CONNECT_TO_NEURAL_LINK..." value="https://github.com/tahmidraven">
+        </div>
+
+        <div class="option-row">
+            <div class="checkbox-group">
+                <label class="toggle-container">
+                    <input type="checkbox" id="showUrlToggle" checked onchange="generateQR()">
+                    <span>DATA_STR</span>
+                </label>
+                <label class="toggle-container">
+                    <input type="checkbox" id="showLogoToggle" checked onchange="generateQR()">
+                    <span>IDENT</span>
+                </label>
+                <select id="dotStyle" class="shape-select" onchange="generateQR()">
+                    <option value="square">BLOCK</option>
+                    <option value="rounded">CELL</option>
+                </select>
+                <button class="bg-btn" onclick="document.getElementById('bgInput').click()">UPLOAD_MEM</button>
+                <input type="file" id="bgInput" style="display:none" accept="image/*" onchange="handleBgUpload(this)">
+            </div>
+
+            <div class="color-strip">
+                <div class="color-item">
+                    <span>CORE</span>
+                    <input type="color" id="colorCore" value="#441d4b" onchange="generateQR()">
+                </div>
+                <div class="color-item">
+                    <span>OUTER</span>
+                    <input type="color" id="colorOuter" value="#932F8C" onchange="generateQR()">
+                </div>
+                <div class="color-item">
+                    <span>INNER</span>
+                    <input type="color" id="colorInner" value="#422F90" onchange="generateQR()">
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <div id="qrcode-wrapper">
+                <div id="qrcode"></div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="main-btn" onclick="generateQR()">Execute</button>
+            <button id="dlBtn" class="main-btn" onclick="downloadPNG()">Extract</button>
+        </div>
+
+        <div id="status">Extraction.Ready...</div>
+        
+        <div class="footer-credit"> 
+            &copy; 2025 // ARCHIVE_DATA: DEC 28 <br>
+            DESIGNED BY <a href="https://github.com/tahmidraven" target="_blank">TahmidRaven</a> 
+            // NEURAL_FUEL: 2_CUPS_COFFEE
+        </div>
+    </div>
+
+    <script>
+        let customBgData = null;
+
+        function updateInputFields() {
+            const protocol = document.getElementById("protocolSelect").value;
+            const container = document.getElementById("inputContainer");
+            container.innerHTML = "";
+
+            if (protocol === "WIFI") {
+                container.innerHTML = `
+                    <input type="text" id="wifiSSID" placeholder="> SSID (Network Name)...">
+                    <input type="text" id="wifiPass" placeholder="> PASSWORD...">
+                    <select id="wifiEnc" class="full-width">
+                        <option value="WPA">ENCR: WPA/WPA2</option>
+                        <option value="WEP">ENCR: WEP</option>
+                        <option value="nopass">ENCR: OPEN</option>
+                    </select>`;
+            } else if (protocol === "VCARD") {
+                container.innerHTML = `
+                    <input type="text" id="vName" placeholder="> FULL_NAME...">
+                    <input type="text" id="vPhone" placeholder="> PHONE_NUMBER...">
+                    <input type="text" id="vEmail" placeholder="> EMAIL_ADDRESS...">`;
+            } else if (protocol === "TEXT") {
+                container.innerHTML = `<input type="text" id="rawText" placeholder="> ENTER DATA STRING...">`;
+            } else {
+                container.innerHTML = `<input type="text" id="urlInput" placeholder="> CONNECT_TO_NEURAL_LINK..." value="https://github.com/tahmidraven">`;
+            }
+            generateQR();
+        }
+
+        function handleBgUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    customBgData = e.target.result;
+                    generateQR();
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function generateQR() {
+            const container = document.getElementById("qrcode");
+            const status = document.getElementById("status");
+            const protocol = document.getElementById("protocolSelect").value;
+            
+            const showUrl = document.getElementById("showUrlToggle").checked;
+            const showLogo = document.getElementById("showLogoToggle").checked;
+            const dotStyle = document.getElementById("dotStyle").value;
+            const colorCore = document.getElementById("colorCore").value;
+            const colorOuter = document.getElementById("colorOuter").value;
+            const colorInner = document.getElementById("colorInner").value;
+            
+            container.innerHTML = "";
+            
+            // --- DATA FORMATTING LOGIC ---
+            let finalData = "";
+            let displayTitle = "NEURAL_DATA";
+
+            if (protocol === "WIFI") {
+                const ssid = document.getElementById("wifiSSID").value || "LINK_ERROR";
+                const pass = document.getElementById("wifiPass").value || "";
+                const enc = document.getElementById("wifiEnc").value;
+                finalData = `WIFI:S:${ssid};T:${enc};P:${pass};;`;
+                displayTitle = `WIFI:${ssid}`;
+            } else if (protocol === "VCARD") {
+                const name = document.getElementById("vName").value || "UNKNOWN_USER";
+                const phone = document.getElementById("vPhone").value || "";
+                const email = document.getElementById("vEmail").value || "";
+                finalData = `BEGIN:VCARD\nVERSION:3.0\nN:${name}\nTEL:${phone}\nEMAIL:${email}\nEND:VCARD`;
+                displayTitle = `ID:${name.substring(0,15)}`;
+            } else if (protocol === "TEXT") {
+                finalData = document.getElementById("rawText").value || "EMPTY_STRING";
+                displayTitle = "RAW_DATA";
+            } else {
+                finalData = document.getElementById("urlInput").value.trim();
+                if(!finalData) return;
+                if(!finalData.startsWith('http') && finalData.includes('.')) finalData = 'https://' + finalData;
+                displayTitle = finalData.replace(/^(https?:\/\/)?(www\.)?/, '').substring(0, 20);
+            }
+
+            try {
+                const qrConfig = {
+                    text: finalData,
+                    width: 250,
+                    height: 250,
+                    colorDark: colorCore,
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H,
+                    quietZone: 20,
+                    PO: colorOuter, 
+                    PI: colorInner,
+                    dotScale: dotStyle === 'rounded' ? 0.8 : 1,
+                    onRenderingEnd: function() {
+                        status.innerText = "Sync.Complete [100%]";
+                    }
+                };
+
+                if (customBgData) {
+                    qrConfig.backgroundImage = customBgData;
+                    qrConfig.backgroundImageAlpha = 0.35;
+                    qrConfig.autoColor = false;
+                }
+
+                if (dotStyle === 'rounded') {
+                    qrConfig.drawer = 'svg';
+                }
+
+                if (showLogo) {
+                    // Default logo logic
+                    let domain = "web";
+                    if (protocol === "URL") {
+                        try { domain = new URL(finalData).hostname; } catch(e){}
+                    }
+                    qrConfig.logo = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+                    qrConfig.logoWidth = 60;
+                    qrConfig.logoHeight = 60;
+                    qrConfig.logoBackgroundColor = '#ffffff';
+                    qrConfig.logoCrossOrigin = 'anonymous';
+                }
+
+                if (showUrl) {
+                    qrConfig.title = displayTitle.toLowerCase();
+                    qrConfig.titleFont = "bold 12px 'Fira Code', monospace";
+                    qrConfig.titleColor = colorCore;
+                    qrConfig.titleHeight = 40;
+                    qrConfig.titleTop = 10;
+                }
+
+                new QRCode(container, qrConfig);
+            } catch(e) {
+                status.innerText = "Error.Invalid_Data";
+                console.error(e);
+            }
+        }
+
+        function downloadPNG() {
+            const canvasOrSvg = document.querySelector("#qrcode canvas, #qrcode svg");
+            if (!canvasOrSvg) return;
+            
+            if(canvasOrSvg.tagName === 'svg') {
+                const svgData = new XMLSerializer().serializeToString(canvasOrSvg);
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                const img = new Image();
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    const link = document.createElement("a");
+                    link.href = canvas.toDataURL("image/png");
+                    link.download = `PERFECT_QR_${Date.now()}.png`;
+                    link.click();
+                };
+                img.src = "data:image/svg+xml;base64," + btoa(svgData);
+            } else {
+                const link = document.createElement("a");
+                link.href = canvasOrSvg.toDataURL("image/png");
+                link.download = `PERFECT_QR_${Date.now()}.png`;
+                link.click();
+            }
+        }
+
+        window.onload = generateQR;
+    </script>
+</body>
+</html>
