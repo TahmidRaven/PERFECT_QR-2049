@@ -2,17 +2,20 @@
 
 A high-fidelity, live QR code generator fueled by the psychological surrealism of **Satoshi Kon's *Perfect Blue*** and the neon-noir atmosphere of **Denis Villeneuve's *Blade Runner 2049***.
 
-> **Origin Note:** This project is a spiritual successor and visual evolution of my previous project: [QR_Code_Generator](https://github.com/TahmidRaven/Tiny_Projects_Vault/tree/main/QR_Code_Generator).
+---
+
+### 🌐 STATION STATUS: ONLINE
+**Access the live terminal here:** ## 👉 [https://tahmidraven.github.io/PERFECT_QR-2049/](https://tahmidraven.github.io/PERFECT_QR-2049/)
 
 ---
+
+> **Origin Note:** This project is a spiritual successor and visual evolution of my previous project: [QR_Code_Generator](https://github.com/TahmidRaven/Tiny_Projects_Vault/tree/main/QR_Code_Generator).
 
 ## 👁️ Visual Concept
 Designed to look like a terminal from a futuristic megalopolis, the UI features:
 * **CRT Scanlines:** An animated overlay simulating old-school cathode-ray tube monitors.
 * **Neural Flicker:** Subtle opacity shifts to create a "living" digital interface.
 * **Glassmorphism:** High-contrast containers with deep blue and magenta accents.
-
----
 
 ## ⚡ Features
 
@@ -33,11 +36,7 @@ Generate specialized QR codes for various data types:
 * **Live Rendering:** Real-time QR generation as you type or change settings.
 * **Data Extraction:** One-click "Extract" button to download high-resolution PNG files.
 
----
-
 ## 🎨 Color Palette // The Palette of 2049
-
-The UI is built on a specific "Noir-Neon" spectrum:
 
 | Component | Variable Name | Hex Code | Visual Reference |
 | :--- | :--- | :--- | :--- |
@@ -47,21 +46,11 @@ The UI is built on a specific "Noir-Neon" spectrum:
 | **Void** | `--deep-blue` | `#050510` | The deep dark of the city |
 | **Phosphor** | `--screen-white` | `#E0E0FF` | Terminal text glow |
 
----
-
 ## 🛠️ Tech Stack
 * **Engine:** HTML5 / CSS3 (Custom CRT Keyframes)
 * **Logic:** JavaScript (ES6+)
 * **Core Library:** [EasyQRCodeJS](https://github.com/ushelp/EasyQRCodeJS)
-* **Typography:** *Space Grotesk* (Geometric) & *Fira Code* (Monospace)
-
----
-
-## 📡 Deployment
-To use this terminal:
-1. Clone the repository.
-2. Open `index.html` in any modern browser.
-3. No build step or server-side processing required (Client-side localized).
+* **Typography:** *Space Grotesk* & *Fira Code*
 
 ---
 
